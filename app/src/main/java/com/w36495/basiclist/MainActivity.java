@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ItemAdapter itemAdapter;
     private ItemTouchHelper itemTouchHelper;
+    private OnItemClickListener listener;
 
     private EditText et_item_add;
     private Button btn_item_add;
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        itemAdapter = new ItemAdapter();
+        itemAdapter = new ItemAdapter(getApplicationContext(), listener);
 
 
         recyclerView.setAdapter(itemAdapter);
@@ -72,13 +74,37 @@ public class MainActivity extends AppCompatActivity {
         itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
+
+        // 우선순위 변경
+        itemAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Item item = mListItems.get(position);
+                if (item.getState() == ItemState.BASIC) {
+                    item.setState(ItemState.GREEN);
+                }
+                else if (item.getState() == ItemState.GREEN) {
+                    item.setState(ItemState.BLUE);
+                }
+                else if (item.getState() == ItemState.BLUE) {
+                    item.setState(ItemState.RED);
+                }
+                else if (item.getState() == ItemState.RED) {
+                    item.setState(ItemState.BASIC);
+                }
+
+                mListItems.set(position, item);
+                itemAdapter.stateUpdateItem(position, item);
+            }
+        });
+
     }
 
     // 투두리스트 추가
     private void addItem() {
         String list = et_item_add.getText().toString();
-        mListItems.add(new Item(list, false));
-        itemAdapter.itemAdd(new Item(list, false));
+        mListItems.add(new Item(list, false, ItemState.BASIC));
+        itemAdapter.itemAdd(new Item(list, false, ItemState.BASIC));
     }
 
     // 투두리스트 삭제
@@ -86,6 +112,5 @@ public class MainActivity extends AppCompatActivity {
         mListItems.remove(position);
         itemAdapter.removeItem(position);
     }
-
 
 }
