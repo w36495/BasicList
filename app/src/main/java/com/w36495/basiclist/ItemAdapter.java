@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> {
 
     private ArrayList<Item> mListItems = new ArrayList<>();
-    private OnItemClickListener onItemClickListener;
+
 
 
     @NonNull
@@ -37,6 +37,15 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> {
     public int getItemCount() {
         return mListItems.size();
     }
+
+    public void removeItem(int position) {
+        mListItems.remove(position);
+        notifyItemRemoved(position);
+        notifyDataSetChanged();
+
+
+    }
+
 
     public class ItemHolder extends RecyclerView.ViewHolder {
 
