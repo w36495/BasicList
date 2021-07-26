@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -23,6 +24,9 @@ public class MainActivity extends AppCompatActivity {
     private ItemAdapter itemAdapter;
     private ItemTouchHelper itemTouchHelper;
     private OnItemClickListener listener;
+
+    private ItemDatabase itemDB = null;
+    private ItemRepository itemRepository;
 
     private EditText et_item_add;
     private Button btn_item_add;
@@ -44,10 +48,13 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        itemAdapter = new ItemAdapter(getApplicationContext(), listener);
 
+        // DB 생성
+        itemDB = ItemDatabase.getInstance(this);
 
+        itemAdapter = new ItemAdapter(this, listener);
         recyclerView.setAdapter(itemAdapter);
+
 
         // '확인'버튼 클릭했을 때 => 투두리스트 추가
         btn_item_add.setOnClickListener(new View.OnClickListener() {
@@ -103,12 +110,24 @@ public class MainActivity extends AppCompatActivity {
     // 투두리스트 추가
     private void addItem() {
         String list = et_item_add.getText().toString();
-        mListItems.add(new Item(list, false, ItemState.BASIC));
-        itemAdapter.itemAdd(new Item(list, false, ItemState.BASIC));
+        Item item = new Item(list, false, ItemState.BASIC);
+
+        // db에 insert하기
+        InsertRunnable insertRunnable = new InsertRunnable(this, item);
+        Thread thread = new Thread(insertRunnable);
+        thread.start();
+
+        mListItems.add(item);
+        itemAdapter.itemAdd(item);
     }
 
     // 투두리스트 삭제
     private void removeItem(int position) {
+        Item item = mListItems.get(position);
+        DeleteRunnable deleteRunnable = new DeleteRunnable(this, item.getId());
+        Thread thread = new Thread(deleteRunnable);
+        thread.start();
+
         mListItems.remove(position);
         itemAdapter.removeItem(position);
     }

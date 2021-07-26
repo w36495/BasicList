@@ -1,23 +1,38 @@
 package com.w36495.basiclist;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "items")
 public class Item {
 
-    private String listItem;    // 투두리스트 내용
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+    private String contents;    // 투두리스트 내용
     private Boolean complete;   // 완료 체크
     private ItemState state;    // 우선순위
 
-    public Item(String listItem, Boolean complete, ItemState state) {
-        this.listItem = listItem;
+    public Item(String contents, Boolean complete, ItemState state) {
+        this.contents = contents;
         this.complete = complete;
         this.state = state;
     }
 
-    public String getListItem() {
-        return listItem;
+    public int getId() {
+        return id;
     }
 
-    public void setListItem(String listItem) {
-        this.listItem = listItem;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getContents() {
+        return contents;
+    }
+
+    public void setContents(String contents) {
+        this.contents = contents;
     }
 
     public Boolean getComplete() {

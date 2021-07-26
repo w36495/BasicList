@@ -36,7 +36,7 @@ implements OnItemClickListener {
 
     @Override
     public void onBindViewHolder(@NonNull ItemHolder holder, int position) {
-        holder.tv_list_item.setText(mListItems.get(position).getListItem());
+        holder.tv_list_item.setText(mListItems.get(position).getContents());
 
         // 우선순위 색 지정
         if (mListItems.get(position).getState() == ItemState.BASIC) {
@@ -144,5 +144,7 @@ implements OnItemClickListener {
         notifyItemChanged(position);
         notifyDataSetChanged();
     }
+
+
 
 }

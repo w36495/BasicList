@@ -6,7 +6,5 @@ package com.w36495.basiclist;
  * BASIC : 기본값
  */
 public enum ItemState {
-
     RED, BLUE, GREEN, BASIC;
-
 }
