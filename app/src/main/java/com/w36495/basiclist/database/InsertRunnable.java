@@ -1,4 +1,4 @@
-package com.w36495.basiclist;
+package com.w36495.basiclist.database;
 
 import android.content.Context;
 import android.util.Log;

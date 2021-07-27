@@ -1,7 +1,9 @@
-package com.w36495.basiclist;
+package com.w36495.basiclist.database;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+
+import com.w36495.basiclist.ItemState;
 
 @Entity(tableName = "items")
 public class Item {
@@ -13,7 +15,8 @@ public class Item {
     private Boolean complete;   // 완료 체크
     private ItemState state;    // 우선순위
 
-    public Item(String contents, Boolean complete, ItemState state) {
+    public Item(int id, String contents, Boolean complete, ItemState state) {
+        this.id = id;
         this.contents = contents;
         this.complete = complete;
         this.state = state;

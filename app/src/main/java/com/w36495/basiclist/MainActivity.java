@@ -5,16 +5,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.Toast;
+
+import com.w36495.basiclist.adapter.ItemAdapter;
+import com.w36495.basiclist.database.DeleteRunnable;
+import com.w36495.basiclist.database.InsertRunnable;
+import com.w36495.basiclist.database.Item;
+import com.w36495.basiclist.database.ItemDatabase;
+import com.w36495.basiclist.database.StateUpdateRunnable;
+import com.w36495.basiclist.database.CompleteUpdateRunnable;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,12 +34,12 @@ public class MainActivity extends AppCompatActivity {
     private OnItemClickListener listener;
 
     private ItemDatabase itemDB = null;
-    private ItemRepository itemRepository;
 
     private EditText et_item_add;
     private Button btn_item_add;
 
     private ArrayList<Item> mListItems = new ArrayList<>();
+    private int listCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +60,14 @@ public class MainActivity extends AppCompatActivity {
         // DB 생성
         itemDB = ItemDatabase.getInstance(this);
 
-        itemAdapter = new ItemAdapter(this, listener);
+        // DB에서 불러오기
+        List<Item> list = new ArrayList<>();
+        selectItem(list);
+
+        itemAdapter = new ItemAdapter(this, mListItems, listener);
         recyclerView.setAdapter(itemAdapter);
+
+        listCount = itemAdapter.getItemCount();
 
 
         // '확인'버튼 클릭했을 때 => 투두리스트 추가
@@ -82,54 +96,103 @@ public class MainActivity extends AppCompatActivity {
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
 
-        // 우선순위 변경
+
         itemAdapter.setOnItemClickListener(new OnItemClickListener() {
+            // 우선순위 변경
             @Override
             public void onItemClick(View view, int position) {
-                Item item = mListItems.get(position);
-                if (item.getState() == ItemState.BASIC) {
-                    item.setState(ItemState.GREEN);
-                }
-                else if (item.getState() == ItemState.GREEN) {
-                    item.setState(ItemState.BLUE);
-                }
-                else if (item.getState() == ItemState.BLUE) {
-                    item.setState(ItemState.RED);
-                }
-                else if (item.getState() == ItemState.RED) {
-                    item.setState(ItemState.BASIC);
-                }
+                stateUpdateItem(position);
+            }
 
-                mListItems.set(position, item);
-                itemAdapter.stateUpdateItem(position, item);
+            // 체크 상태 변경
+            @Override
+            public void onItemCheckedClick(CompoundButton compoundButton, int position, boolean isChecked) {
+                Item item = mListItems.get(position);
+                // 체크되어 있으면 => complete = 1로 변경
+                if (isChecked) {
+                    checkedUpdateItem(true, position);
+                }
+                else if (!isChecked) {
+                    checkedUpdateItem(false, position);
+                }
             }
         });
+
+    }
+
+    // db 불러오기
+    private void selectItem(List<Item> list) {
+        SelectRunnable selectRunnable = new SelectRunnable(this, list);
+        Thread thread = new Thread(selectRunnable);
+        thread.start();
+
+        for (Item item : list) {
+            Log.d("데이터베이스에서 불러옴", item.getId() + " : " + item.getContents());
+            mListItems.add(item);
+        }
 
     }
 
     // 투두리스트 추가
     private void addItem() {
         String list = et_item_add.getText().toString();
-        Item item = new Item(list, false, ItemState.BASIC);
+
+        Item item = new Item(listCount++, list, false, ItemState.BASIC);
 
         // db에 insert하기
         InsertRunnable insertRunnable = new InsertRunnable(this, item);
         Thread thread = new Thread(insertRunnable);
         thread.start();
 
-        mListItems.add(item);
         itemAdapter.itemAdd(item);
+        Log.d(TAG, "item ID : " + item.getId());
     }
 
     // 투두리스트 삭제
     private void removeItem(int position) {
         Item item = mListItems.get(position);
+        Log.d(TAG, "getId : " + item.getId());
         DeleteRunnable deleteRunnable = new DeleteRunnable(this, item.getId());
         Thread thread = new Thread(deleteRunnable);
         thread.start();
 
-        mListItems.remove(position);
         itemAdapter.removeItem(position);
     }
+
+    // 체크 상태 변경
+    private void checkedUpdateItem(boolean isChecked, int position) {
+        Item item = mListItems.get(position);
+
+        CompleteUpdateRunnable completeUpdateRunnable = new CompleteUpdateRunnable(this, item.getId(), isChecked);
+        Thread thread = new Thread(completeUpdateRunnable);
+        thread.start();
+
+        itemAdapter.checkedUpdateItem(isChecked, position);
+    }
+
+    // 우선순위 변경
+    private void stateUpdateItem(int position) {
+        Item item = mListItems.get(position);
+        if (item.getState() == ItemState.BASIC) {
+            item.setState(ItemState.GREEN);
+        }
+        else if (item.getState() == ItemState.GREEN) {
+            item.setState(ItemState.BLUE);
+        }
+        else if (item.getState() == ItemState.BLUE) {
+            item.setState(ItemState.RED);
+        }
+        else if (item.getState() == ItemState.RED) {
+            item.setState(ItemState.BASIC);
+        }
+
+        StateUpdateRunnable stateUpdateRunnable = new StateUpdateRunnable(this, item.getId(), item.getState());
+        Thread thread = new Thread(stateUpdateRunnable);
+        thread.start();
+
+        itemAdapter.stateUpdateItem(position, item);
+
+    }
+
 
 }

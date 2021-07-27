@@ -1,11 +1,11 @@
-package com.w36495.basiclist;
+package com.w36495.basiclist.database;
 
 import androidx.room.Dao;
-import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
-import java.util.ArrayList;
+import com.w36495.basiclist.ItemState;
+
 import java.util.List;
 
 /**
@@ -23,5 +23,10 @@ public interface ItemDAO {
     @Query("delete from items where id = :itemId")
     void deleteItem(int itemId); // 하나의 리스트 삭제
 
+    // 완료/미완료 변경
+    @Query("update items set complete = :itemComplete where id = :itemId")
+    void checkedUpdateItem(int itemId, boolean itemComplete);
 
+    @Query("update items set state = :itemState where id = :itemId")
+    void stateUpdateItem(int itemId, ItemState itemState);
 }

@@ -1,4 +1,4 @@
-package com.w36495.basiclist;
+package com.w36495.basiclist.adapter;
 
 import android.content.Context;
 import android.graphics.Paint;
@@ -13,17 +13,24 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.w36495.basiclist.ItemState;
+import com.w36495.basiclist.OnItemClickListener;
+import com.w36495.basiclist.R;
+import com.w36495.basiclist.database.Item;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder>
 implements OnItemClickListener {
 
-    private ArrayList<Item> mListItems = new ArrayList<>();
+    private ArrayList<Item> mListItems = null;
     private OnItemClickListener listener;
     private Context context;
 
-    public ItemAdapter(Context context, OnItemClickListener listener) {
+    public ItemAdapter(Context context, ArrayList<Item> mListItems, OnItemClickListener listener) {
         this.context = context;
+        this.mListItems = mListItems;
         this.listener = listener;
     }
 
@@ -37,6 +44,14 @@ implements OnItemClickListener {
     @Override
     public void onBindViewHolder(@NonNull ItemHolder holder, int position) {
         holder.tv_list_item.setText(mListItems.get(position).getContents());
+
+        // 체크 표시
+        if (mListItems.get(position).getComplete() == true) {
+            holder.tv_list_item.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
+        }
+        else if (mListItems.get(position).getComplete() == false) {
+            holder.tv_list_item.setPaintFlags(0);
+        }
 
         // 우선순위 색 지정
         if (mListItems.get(position).getState() == ItemState.BASIC) {
@@ -73,6 +88,13 @@ implements OnItemClickListener {
         }
     }
 
+    @Override
+    public void onItemCheckedClick(CompoundButton compoundButton, int position, boolean checked) {
+        if (listener != null) {
+            listener.onItemCheckedClick(compoundButton, position, checked);
+        }
+    }
+
     public class ItemHolder extends RecyclerView.ViewHolder {
 
         protected TextView tv_list_item;
@@ -85,19 +107,16 @@ implements OnItemClickListener {
             cb_list_item = itemView.findViewById(R.id.cb_list_item);
             tv_list_state = itemView.findViewById(R.id.tv_list_state);
 
+
             cb_list_item.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     int position = getAdapterPosition();
-                    if (isChecked) {    // 체크되었으면 완료 -> 취소선
-                        tv_list_item.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
-                        checkedUpdateItem(true, position);
+
+                    if (listener != null) {
+                        listener.onItemCheckedClick(buttonView, position, isChecked);
                     }
-                    else {
-                        // 체크되어있지 않으면 -> 취소선 없애기
-                        tv_list_item.setPaintFlags(0);
-                        checkedUpdateItem(false, position);
-                    }
+
                 }
             });
 
@@ -140,8 +159,14 @@ implements OnItemClickListener {
             item.setComplete(true);
         }
         else item.setComplete(false);
+
         mListItems.set(position, item);
         notifyItemChanged(position);
+        notifyDataSetChanged();
+    }
+
+    public void setList(ArrayList<Item> mListItems) {
+        this.mListItems = mListItems;
         notifyDataSetChanged();
     }
 
