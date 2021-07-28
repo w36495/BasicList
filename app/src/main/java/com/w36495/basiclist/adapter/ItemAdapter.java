@@ -13,24 +13,24 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.w36495.basiclist.ItemState;
-import com.w36495.basiclist.OnItemClickListener;
+import com.w36495.basiclist.database.ItemState;
+import com.w36495.basiclist.listener.OnItemClickListener;
 import com.w36495.basiclist.R;
 import com.w36495.basiclist.database.Item;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder>
 implements OnItemClickListener {
 
+    private CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener;
+
     private ArrayList<Item> mListItems = null;
     private OnItemClickListener listener;
     private Context context;
 
-    public ItemAdapter(Context context, ArrayList<Item> mListItems, OnItemClickListener listener) {
+    public ItemAdapter(Context context, OnItemClickListener listener) {
         this.context = context;
-        this.mListItems = mListItems;
         this.listener = listener;
     }
 
@@ -47,9 +47,19 @@ implements OnItemClickListener {
 
         // 체크 표시
         if (mListItems.get(position).getComplete() == true) {
+
+            holder.cb_list_item.setOnCheckedChangeListener(null);
+
+            holder.cb_list_item.setChecked(true);
+            holder.cb_list_item.setOnCheckedChangeListener(mOnCheckedChangeListener);
             holder.tv_list_item.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
         }
         else if (mListItems.get(position).getComplete() == false) {
+
+            holder.cb_list_item.setOnCheckedChangeListener(null);
+
+            holder.cb_list_item.setChecked(false);
+            holder.cb_list_item.setOnCheckedChangeListener(mOnCheckedChangeListener);
             holder.tv_list_item.setPaintFlags(0);
         }
 
@@ -68,10 +78,15 @@ implements OnItemClickListener {
         }
     }
 
+    private void onBindChecked(@NonNull ItemHolder holder) {
+
+    }
+
     @Override
     public int getItemCount() { return mListItems.size(); }
 
     public void removeItem(int position) {
+
         mListItems.remove(position);
         notifyItemRemoved(position);
         notifyDataSetChanged();
@@ -111,7 +126,7 @@ implements OnItemClickListener {
             cb_list_item.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    int position = getAdapterPosition();
+                    int position = getAbsoluteAdapterPosition();
 
                     if (listener != null) {
                         listener.onItemCheckedClick(buttonView, position, isChecked);
@@ -143,33 +158,37 @@ implements OnItemClickListener {
     /**
      * 우선순위 변경 반영
      */
-    public void stateUpdateItem(int position, Item item) {
+    public void stateUpdateItem(int position) {
+        Item item = mListItems.get(position);
         mListItems.set(position, item);
-        notifyItemChanged(position);
+        notifyItemChanged(position, item);
         notifyDataSetChanged();
     }
 
     /**
      * 완료/미완료 상태 변경 반영
      */
-    public void checkedUpdateItem(boolean checked, int position) {
+    public void checkedUpdateItem(boolean isChecked, int position) {
         Item item = mListItems.get(position);
         // 완료된 리스트
-        if (checked == true) {
+        if (isChecked == true) {
             item.setComplete(true);
         }
         else item.setComplete(false);
 
         mListItems.set(position, item);
-        notifyItemChanged(position);
+        notifyItemChanged(position, item);
         notifyDataSetChanged();
     }
 
+    // db에서 가져온 list들 -> ArrayList
     public void setList(ArrayList<Item> mListItems) {
         this.mListItems = mListItems;
         notifyDataSetChanged();
     }
 
-
+    public Item findOne(int position) {
+        return mListItems.get(position);
+    }
 
 }

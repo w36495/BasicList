@@ -3,14 +3,11 @@ package com.w36495.basiclist.database;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import com.w36495.basiclist.ItemState;
-
 @Entity(tableName = "items")
 public class Item {
 
     @PrimaryKey(autoGenerate = true)
     private int id;
-
     private String contents;    // 투두리스트 내용
     private Boolean complete;   // 완료 체크
     private ItemState state;    // 우선순위

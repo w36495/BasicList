@@ -1,4 +1,4 @@
-package com.w36495.basiclist;
+package com.w36495.basiclist.listener;
 
 import android.view.View;
 import android.widget.CompoundButton;
