@@ -98,7 +98,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
     }
 
-    // 투두리스트 추가
+    /**
+     * 투두리스트 추가
+     */
     private void addItem() {
         String list = et_item_add.getText().toString();
 
@@ -110,7 +112,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         Log.d(TAG, "MainActivity - addItem : " + item.getId());
     }
 
-    // 투두리스트 삭제
+    /**
+     * 투두리스트 삭제
+     */
     private void removeItem(Item item) {
         Log.d(TAG, "MainActivity - removeItem : " + item.getId());
 
@@ -118,14 +122,24 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         itemDB.itemDAO().deleteItem(item.getId());
     }
 
-    //todo : 체크 상태 변경
-    private void checkedUpdateItem(boolean isChecked, Item item) {
+    /**
+     * 체크(완료/미완료) 상태 변경
+     */
+    private void checkedUpdateItem(Item item) {
+        boolean itemComplete = item.getComplete();
+        boolean isChecked;
+
+        if (itemComplete == true) isChecked = false;
+        else isChecked = true;
+
         // db update 반영
         itemDB.itemDAO().checkedUpdateItem(item.getId(), isChecked);
         Log.d(TAG, "MainActivity - checkedUpdateItem : " + item.getId());
     }
 
-    // 우선순위 변경
+    /**
+     * 리스트의 우선순위 변경
+     */
     private void stateUpdateItem(Item item) {
         if (item.getState() == ItemState.BASIC) {
             item.setState(ItemState.GREEN);
@@ -154,11 +168,10 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     }
 
     @Override
-    public void onItemCheckedClick(Item item, boolean isChecked) {
+    public void onItemCheckedClick(Item item) {
         Log.d(TAG, "MainActivity - checkedUpdateItem() 호출");
-        checkedUpdateItem(isChecked, item);
+        checkedUpdateItem(item);
     }
 
-    // todo 아래로 슬라이드하면 새로고침
 
 }

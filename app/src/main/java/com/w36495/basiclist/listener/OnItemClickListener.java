@@ -9,6 +9,6 @@ public interface OnItemClickListener {
 
     void onItemClick(Item item);
 
-    void onItemCheckedClick(Item item, boolean isChecked);
+    void onItemCheckedClick(Item item);
 
 }

@@ -52,11 +52,9 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> {
     public void onBindViewHolder(@NonNull ItemHolder holder, int position) {
         holder.tv_list_item.setText(mListItems.get(position).getContents());
 
-
-        // todo : 체크표시
         // 체크 표시
         if (mListItems.get(position).getComplete() == true) {
-            holder.tv_list_item.setTextColor(Color.RED);
+            holder.tv_list_item.setTextColor(Color.GRAY);
             holder.cb_list_item.setOnCheckedChangeListener(null);
             holder.cb_list_item.setChecked(true);
             holder.cb_list_item.setOnCheckedChangeListener(mOnCheckedChangeListener);
@@ -66,15 +64,11 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> {
         // 체크가 되어 있지 않다면
         else if (mListItems.get(position).getComplete() == false) {
             holder.tv_list_item.setTextColor(Color.BLACK);
-
-
             holder.cb_list_item.setOnCheckedChangeListener(null);
             holder.cb_list_item.setChecked(false);
             holder.cb_list_item.setOnCheckedChangeListener(mOnCheckedChangeListener);
             holder.tv_list_item.setPaintFlags(0);
         }
-
-
 
         // 우선순위 색 지정
         if (mListItems.get(position).getState() == ItemState.BASIC) {
@@ -103,15 +97,15 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> {
             cb_list_item = itemView.findViewById(R.id.cb_list_item);
             tv_list_state = itemView.findViewById(R.id.tv_list_state);
 
-            // 체크박스를 클릭했을 때(완료/미완료) -> OnItemClickListener의 onItemCheckedClick 호출
-            cb_list_item.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            // 체크박스를 클릭했을 때(완료/미완료)
+            cb_list_item.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                public void onClick(View v) {
                     int position = getAbsoluteAdapterPosition();
                     Item item = mListItems.get(position);
 
                     if (onItemClickListener != null) {
-                        onItemClickListener.onItemCheckedClick(item, isChecked);
+                        onItemClickListener.onItemCheckedClick(item);
                     }
                 }
             });
@@ -142,8 +136,6 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> {
         notifyDataSetChanged();
     }
 
-    public Item getList(int position) {
-        return mListItems.get(position);
-    }
+    public Item getList(int position) { return mListItems.get(position); }
 
 }
