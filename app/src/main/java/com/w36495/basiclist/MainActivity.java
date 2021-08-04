@@ -2,6 +2,7 @@ package com.w36495.basiclist;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,6 +16,7 @@ import android.widget.EditText;
 
 import com.w36495.basiclist.adapter.ItemAdapter;
 import com.w36495.basiclist.database.Item;
+import com.w36495.basiclist.database.ItemDAO;
 import com.w36495.basiclist.database.ItemDatabase;
 import com.w36495.basiclist.database.ItemState;
 import com.w36495.basiclist.listener.OnItemClickListener;
@@ -22,13 +24,12 @@ import com.w36495.basiclist.listener.OnItemClickListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
+public class MainActivity extends AppCompatActivity implements OnItemClickListener {
+    private static final String TAG = "로그";
 
     private RecyclerView recyclerView;
     private ItemAdapter itemAdapter;
     private ItemTouchHelper itemTouchHelper;
-    private OnItemClickListener listener;
 
     private ItemDatabase itemDB = null;
 
@@ -56,14 +57,18 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 
-        itemAdapter = new ItemAdapter(this, listener);
+        itemAdapter = new ItemAdapter(this, this);
         recyclerView.setAdapter(itemAdapter);
 
         // DB에서 불러오기
-        itemAdapter.setList((ArrayList)itemDB.itemDAO().getAll());
+        itemDB.itemDAO().getAll().observe(this, new Observer<List<Item>>() {
+            @Override
+            public void onChanged(List<Item> items) {
+                itemAdapter.setList((ArrayList) items);
+            }
+        });
 
         listCount = itemDB.itemDAO().lastGetId()+1;
-
 
         // '확인'버튼 클릭했을 때 => 투두리스트 추가
         btn_item_add.setOnClickListener(new View.OnClickListener() {
@@ -84,32 +89,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAbsoluteAdapterPosition();
-                removeItem(position);
+                removeItem(itemAdapter.getList(position));
             }
         };
 
         itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
-
-        itemAdapter.setOnItemClickListener(new OnItemClickListener() {
-            // textView 클릭 -> 우선순위 변경
-            @Override
-            public void onItemClick(View view, int position) {
-                stateUpdateItem(position);
-            }
-
-            // checkBox 클릭 -> 체크 상태 변경
-            @Override
-            public void onItemCheckedClick(CompoundButton compoundButton, int position, boolean isChecked) {
-                // 체크되어 있으면 => complete = 1로 변경
-                if (isChecked) {
-                    checkedUpdateItem(true, position);
-                }
-                else if (!isChecked) {
-                    checkedUpdateItem(false, position);
-                }
-            }
-        });
 
     }
 
@@ -121,36 +106,27 @@ public class MainActivity extends AppCompatActivity {
 
         // db에 insert
         itemDB.itemDAO().insertItem(item);
-        itemAdapter.itemAdd(item);
 
-        Log.d(TAG, "item ID : " + item.getId());
+        Log.d(TAG, "MainActivity - addItem : " + item.getId());
     }
 
     // 투두리스트 삭제
-    private void removeItem(int position) {
-        Item item = itemAdapter.findOne(position);
-        Log.d(TAG, "removeItemId : " + item.getId());
+    private void removeItem(Item item) {
+        Log.d(TAG, "MainActivity - removeItem : " + item.getId());
 
         // db에서 해당 list delete 실행
         itemDB.itemDAO().deleteItem(item.getId());
-
-        itemAdapter.removeItem(position);
     }
 
-    // 체크 상태 변경
-    private void checkedUpdateItem(boolean isChecked, int position) {
-        Item item = itemAdapter.findOne(position);
-
+    //todo : 체크 상태 변경
+    private void checkedUpdateItem(boolean isChecked, Item item) {
         // db update 반영
         itemDB.itemDAO().checkedUpdateItem(item.getId(), isChecked);
-
-        itemAdapter.checkedUpdateItem(isChecked, position);
+        Log.d(TAG, "MainActivity - checkedUpdateItem : " + item.getId());
     }
 
     // 우선순위 변경
-    private void stateUpdateItem(int position) {
-        Item item = itemAdapter.findOne(position);
-
+    private void stateUpdateItem(Item item) {
         if (item.getState() == ItemState.BASIC) {
             item.setState(ItemState.GREEN);
         }
@@ -167,10 +143,22 @@ public class MainActivity extends AppCompatActivity {
         // db update 반영
         itemDB.itemDAO().stateUpdateItem(item.getId(), item.getState());
 
-        itemAdapter.stateUpdateItem(position);
-
-        Log.d("우선순위 변경", "itemID : " + item.getId());
+        Log.d(TAG, "MainActivity - stateUpdateItem : " + item.getId());
     }
 
+
+    @Override
+    public void onItemClick(Item item) {
+        Log.d(TAG, "MainActivity - onItemClick() 호출");
+        stateUpdateItem(item);
+    }
+
+    @Override
+    public void onItemCheckedClick(Item item, boolean isChecked) {
+        Log.d(TAG, "MainActivity - checkedUpdateItem() 호출");
+        checkedUpdateItem(isChecked, item);
+    }
+
+    // todo 아래로 슬라이드하면 새로고침
 
 }

@@ -42,6 +42,12 @@ dependencies {
     // 데이터베이스 디버그
     debugImplementation 'com.amitshekhar.android:debug-db:1.0.6'
 
+    // LiveData
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel:2.3.1")
+    // LiveData
+    implementation("androidx.lifecycle:lifecycle-livedata:2.3.1")
+
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

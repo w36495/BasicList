@@ -1,8 +1,10 @@
 package com.w36495.basiclist.database;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -13,7 +15,7 @@ import java.util.List;
 public interface ItemDAO {
 
     @Query("select * from items")
-    List<Item> getAll();   // 모든 리스트를 검색
+    LiveData<List<Item>> getAll();   // 모든 리스트를 검색
 
     @Query("select id from items order by id desc limit 1")
     int lastGetId();   // 마지막 행 id 가져오기
@@ -28,9 +30,11 @@ public interface ItemDAO {
     void deleteItem(int itemId); // 하나의 리스트 삭제
 
     // 완료/미완료 변경
-    @Query("update items set complete = :isComplete where id = :itemId")
-    void checkedUpdateItem(int itemId, boolean isComplete);
+    @Query("update items set complete = :isChecked where id = :itemId")
+    void checkedUpdateItem(int itemId, boolean isChecked);
 
+
+    // 우선순위 변경
     @Query("update items set state = :itemState where id = :itemId")
     void stateUpdateItem(int itemId, ItemState itemState);
 }
